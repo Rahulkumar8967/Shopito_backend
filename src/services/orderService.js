@@ -126,7 +126,7 @@ async function getAllOrders() {
       path: "product",
     },
   })
-  .lean();;
+  .lean();
 }
 
 async function deleteOrder(orderId) {

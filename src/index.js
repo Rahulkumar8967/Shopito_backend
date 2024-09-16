@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-
+// get LL PRODUCT API ME ERROR H 
+// may be  in delete item by id m bhi
 const app = express();
 
 // Middleware
@@ -27,6 +28,7 @@ app.use("/api/admin/products", adminProductRouter);
 
 const cartRouter = require("./routes/cart.routes.js");
 app.use("/api/cart", cartRouter);
+
 
 const cartItemRouter = require("./routes/cartItem.routes.js");
 app.use("/api/cart_items", cartItemRouter);

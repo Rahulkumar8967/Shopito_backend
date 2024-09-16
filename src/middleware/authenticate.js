@@ -3,11 +3,11 @@ const userService=require("../services/user.service.js")
 
 
 const authenticate = async(req,res,next)=>{
-
+// bearer token
     try {
         const token=req.headers.authorization?.split(" ")[1]
         if(!token){
-            return req.status(404).send({message:"token not found"})
+            return res.status(404).send({message:"token not found"})
         }
 
         const userId=jwtProvider.getUserIdFromToken(token);

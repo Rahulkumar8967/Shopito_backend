@@ -6,6 +6,8 @@ const getAllOrders = async (req, res) => {
     const orders = await orderService.getAllOrders();
     return res.status(202).send(orders);
   } catch (error) {
+   
+    
     res.status(500).send({ error: "Something went wrong" });
   }
 };

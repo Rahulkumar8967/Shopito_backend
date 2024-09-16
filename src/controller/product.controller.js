@@ -1,4 +1,5 @@
 // productController.js
+const mongoose = require('mongoose');
 const productService = require("../services/product.service.js")
 
 // Create a new product
@@ -33,24 +34,28 @@ async function updateProduct(req, res) {
   }
 }
 
-// Get all products
-// async function getAllProducts(req, res) {
-//   try {
-//     const products = await productService.getAllProducts();
-//     res.json(products);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// }
+// Find a product by ID
 
 // Find a product by ID
 async function findProductById(req, res) {
   try {
-    const productId = req.params.id;
+    // Extract and trim the product ID from the request parameters
+    const productId = req.params.id.trim();
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: 'Invalid product ID format' });
+    }
+
     const product = await productService.findProductById(productId);
-    return res.status(200).send(product);
+
+    if (!product) {
+      return res.status(404).json({ message: `Product not found with id ${productId}` });
+    }
+
+    return res.status(200).json(product);
   } catch (err) {
-    return res.status(404).json({ message: err.message });
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -87,6 +92,7 @@ async function getAllProducts(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
 
 const createMultipleProduct= async (req, res) => {
   try {

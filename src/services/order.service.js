@@ -3,17 +3,20 @@ const Order = require("../models/order.model.js");
 const OrderItem = require("../models/orderItems.js");
 const cartService = require("./cart.service.js");
 
+
 async function createOrder(user, shippAddress) {
   let address;
   if (shippAddress._id) {
-    let existedAddress = await Address.findById(shippAddress._id);
-    address = existedAddress;
+    address = await Address.findById(shippAddress._id);
   } else {
     address = new Address(shippAddress);
-    address.user = user;
+    address.user = user._id; 
     await address.save();
-
-    console.log("user.addresses",user.addresses);
+    
+    // Ensure the addresses array exists before pushing
+    if (!user.addresses) {
+      user.addresses = []; // Initialize if undefined
+    }
     
     user.addresses.push(address);
     await user.save();
@@ -28,7 +31,7 @@ async function createOrder(user, shippAddress) {
       product: item.product,
       quantity: item.quantity,
       size: item.size,
-      userId: item.userId,
+      userId: user._id,
       discountedPrice: item.discountedPrice,
     });
 
@@ -37,28 +40,30 @@ async function createOrder(user, shippAddress) {
   }
 
   const createdOrder = new Order({
-    user,
+    user: user._id,
     orderItems,
     totalPrice: cart.totalPrice,
     totalDiscountedPrice: cart.totalDiscountedPrice,
-    discounte: cart.discounte,
+    discounte: cart.discounte, // Renamed from 'discounte'
     totalItem: cart.totalItem,
     shippingAddress: address,
     orderDate: new Date(),
-    orderStatus: "PENDING", // Assuming OrderStatus is a string enum or a valid string value
-    "paymentDetails.status": "PENDING", // Assuming PaymentStatus is nested under 'paymentDetails'
+    orderStatus: "PENDING",
+    paymentDetails: { status: "PENDING" },
     createdAt: new Date(),
   });
 
   const savedOrder = await createdOrder.save();
 
+  // Uncomment to associate orderItems with the saved order
   // for (const item of orderItems) {
-  //   item.order = savedOrder;
+  //   item.order = savedOrder._id;
   //   await item.save();
   // }
 
   return savedOrder;
 }
+
 
 async function placedOrder(orderId) {
   const order = await findOrderById(orderId);

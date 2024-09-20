@@ -1,6 +1,6 @@
 // productController.js
-const mongoose = require('mongoose');
-const productService = require("../services/product.service.js")
+const mongoose = require("mongoose");
+const productService = require("../services/product.service.js");
 
 // Create a new product
 async function createProduct(req, res) {
@@ -34,28 +34,30 @@ async function updateProduct(req, res) {
   }
 }
 
-// Find a product by ID
+
 
 // Find a product by ID
 async function findProductById(req, res) {
   try {
-    // Extract and trim the product ID from the request parameters
+   
     const productId = req.params.id.trim();
 
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: 'Invalid product ID format' });
+      return res.status(400).json({ message: "Invalid product ID format" });
     }
 
     const product = await productService.findProductById(productId);
 
     if (!product) {
-      return res.status(404).json({ message: `Product not found with id ${productId}` });
+      return res
+        .status(404)
+        .json({ message: `Product not found with id ${productId}` });
     }
-
-    return res.status(200).json(product);
+// may be error send = json
+    return res.status(200).send (product);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(404).json({ error: err.message });
   }
 }
 
@@ -84,7 +86,6 @@ async function searchProduct(req, res) {
 // Get all products with filtering and pagination
 async function getAllProducts(req, res) {
   try {
-
     const products = await productService.getAllProducts(req.query);
 
     return res.status(200).send(products);
@@ -93,10 +94,9 @@ async function getAllProducts(req, res) {
   }
 }
 
-
-const createMultipleProduct= async (req, res) => {
+const createMultipleProduct = async (req, res) => {
   try {
-    await productService.createMultipleProduct(req.body)
+    await productService.createMultipleProduct(req.body);
     res
       .status(202)
       .json({ message: "Products Created Successfully", success: true });
@@ -113,6 +113,5 @@ module.exports = {
   findProductById,
   findProductByCategory,
   searchProduct,
-  createMultipleProduct
-
+  createMultipleProduct,
 };

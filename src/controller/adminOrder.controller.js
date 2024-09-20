@@ -1,4 +1,3 @@
-
 const orderService = require("../services/order.service.js");
 
 const getAllOrders = async (req, res) => {
@@ -6,8 +5,6 @@ const getAllOrders = async (req, res) => {
     const orders = await orderService.getAllOrders();
     return res.status(202).send(orders);
   } catch (error) {
-   
-    
     res.status(500).send({ error: "Something went wrong" });
   }
 };
@@ -63,8 +60,6 @@ const deleteOrder = (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 };
-
-
 
 module.exports = {
   getAllOrders,

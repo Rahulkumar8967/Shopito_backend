@@ -40,7 +40,7 @@ async function createCartItem(cartItemData) {
 
 // Update an existing cart item
 async function updateCartItem(userId, cartItemId, cartItemData) {
-  cartItemId = cartItemId.trim(); // Trim any extra characters
+  cartItemId = cartItemId.trim(); 
 
   const item = await findCartItemById(cartItemId);
   if (!item) {
@@ -52,7 +52,7 @@ async function updateCartItem(userId, cartItemId, cartItemData) {
     throw new UserException(`User not found: ${userId}`);
   }
 
-  if (user.id === userId.toString()) {
+  if (user.id.toString() === userId.toString()) {
     // Ensure quantity is valid
     item.quantity = cartItemData.quantity || item.quantity;
     if (!item.quantity) {
@@ -84,22 +84,32 @@ async function isCartItemExist(cart, product, size, userId) {
 
 // Remove a cart item
 async function removeCartItem(userId, cartItemId) {
-  cartItemId = cartItemId.trim();  // Trim any extra characters
-  
+  cartItemId = cartItemId.trim();
+
   const cartItem = await findCartItemById(cartItemId);
+  
   if (!cartItem) {
     throw new CartItemException(`CartItem not found with id: ${cartItemId}`);
   }
 
-  const user = await userService.findUserById(cartItem.userId);
+  const user = await userService.findUserById(cartItem.userId); 
+  if (!user) {
+    throw new UserException(`User not found: ${cartItem.userId}`);
+  }
+
   const reqUser = await userService.findUserById(userId);
+  if (!reqUser) {
+    throw new UserException(`User not found: ${userId}`);
+  }
 
   if (user.id === reqUser.id) {
     await CartItem.findByIdAndDelete(cartItem.id);
+    return { message: 'Cart item removed successfully', cartItemId };
   } else {
     throw new UserException("You can't remove another user's item");
   }
 }
+
 
 // Find a cart item by its ID
 async function findCartItemById(cartItemId) {
@@ -111,10 +121,13 @@ async function findCartItemById(cartItemId) {
   }
 }
 
+
+
 module.exports = {
   createCartItem,
   updateCartItem,
   isCartItemExist,
   removeCartItem,
   findCartItemById,
+ 
 };

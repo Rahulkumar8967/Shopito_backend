@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const cartItemSchema = new mongoose.Schema({
   cart: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'cart',
+    ref: 'cart',//
     required: true,
   },
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'products',
+    ref: 'products', //
     required: true,
   },
   size: {

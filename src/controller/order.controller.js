@@ -1,15 +1,20 @@
 const orderService = require("../services/order.service.js");
 
 const createOrder = async (req, res) => {
-  const user = await req.user;
+  const user = req.user; 
+
   try {
-    let createdOrder = await orderService.createOrder(user, req.body);
-    console.log("order ", createdOrder);
+    const createdOrder = await orderService.createOrder(user, req.body);
+
+    console.log("Order created: ", createdOrder);
     return res.status(201).send(createdOrder);  
   } catch (error) {
-    return res.status(500).send(error.message); 
+    console.error("Error creating order:", error);
+    return res.status(500).send({ error: error.message });
   }
 };
+
+
 
 const findOrderById = async (req, res) => {
   const user = await req.user;

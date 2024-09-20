@@ -6,7 +6,7 @@ async function createProduct(reqData) {
   let topLevel = await Category.findOne({ name: reqData.topLevelCategory });
 
   if (!topLevel) {
-    const topLavelCategory = new Category({
+    const topLevelCategory = new Category({
       name: reqData.topLevelCategory,
       level: 1,
     });
@@ -91,9 +91,7 @@ async function findProductById(id) {
   return product;
 }
 
-// Get all products with filtering and pagination
-// Get all products with filtering and pagination
-// Get all products with filtering and pagination
+
 async function getAllProducts(reqQuery) {
   let {
     category,

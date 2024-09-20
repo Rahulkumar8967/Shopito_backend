@@ -21,11 +21,12 @@ const userRoutes = require("./routes/user.route.js");
 app.use("/api/users", userRoutes);
 
 const productRouter = require("./routes/product.routes.js");
-app.use("/api/product", productRouter);
+app.use("/api/products", productRouter);
 
 const adminProductRouter = require("./routes/product.admin.routes.js");
 app.use("/api/admin/products", adminProductRouter);
 
+//
 const cartRouter = require("./routes/cart.routes.js");
 app.use("/api/cart", cartRouter);
 

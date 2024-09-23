@@ -17,7 +17,7 @@ const productSchema = new mongoose.Schema({
   discountedPrice: {
     type: Number,
   },
-  discountPersent: {
+  discountPercent: {
     type: Number,
   },
   quantity: {
@@ -62,6 +62,7 @@ const productSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
 
 const Product = mongoose.model('products', productSchema);
 

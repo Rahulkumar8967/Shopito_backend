@@ -20,6 +20,3 @@ const Category = mongoose.model('categories', categorySchema);
 
 module.exports = Category;
 
-//men
-// cloth
-//kurta

@@ -1,7 +1,6 @@
-const mongoose = require('mongoose');
+//
 const Category = require("../models/category.model.js");
 const Product = require("../models/product.model.js");
-const { ObjectId } = mongoose.Types;
 
 // Create a new product
 async function createProduct(reqData) {
@@ -12,6 +11,7 @@ async function createProduct(reqData) {
       name: reqData.topLevelCategory,
       level: 1,
     });
+
 
     topLevel = await topLevelCategory.save();
   }
@@ -57,40 +57,43 @@ async function createProduct(reqData) {
     price: reqData.price,
     sizes: reqData.size,
     quantity: reqData.quantity,
-    category: thirdLevel._id, // Store as ObjectId
+    category: thirdLevel._id,
   });
 
   const savedProduct = await product.save();
+
   return savedProduct;
 }
-
 // Delete a product by ID
 async function deleteProduct(productId) {
   const product = await findProductById(productId);
+
   if (!product) {
-    throw new Error("Product not found with id - : ", productId);
+    throw new Error("product not found with id - : ", productId);
   }
 
   await Product.findByIdAndDelete(productId);
-  return "Product deleted successfully";
+
+  return "Product deleted Successfully";
 }
 
 // Update a product by ID
 async function updateProduct(productId, reqData) {
-  const updatedProduct = await Product.findByIdAndUpdate(productId, reqData, { new: true });
+  const updatedProduct = await Product.findByIdAndUpdate(productId, reqData);
   return updatedProduct;
 }
 
 // Find a product by ID
 async function findProductById(id) {
   const product = await Product.findById(id).populate("category").exec();
+
   if (!product) {
     throw new Error("Product not found with id " + id);
   }
   return product;
 }
 
-// Fetch all products with filters
+// Get all products based on query filters
 async function getAllProducts(reqQuery) {
   let {
     category,
@@ -101,122 +104,79 @@ async function getAllProducts(reqQuery) {
     minDiscount,
     sort,
     stock,
-    pageNumber,
-    pageSize,
+    pageNumber = 1,
+    pageSize = 10,
   } = reqQuery;
 
-  pageSize = parseInt(pageSize) || 10;
   pageNumber = parseInt(pageNumber, 10) || 1;
+  pageSize = parseInt(pageSize, 10) || 10;
 
   if (pageSize <= 0 || pageNumber <= 0) {
     return { content: [], currentPage: pageNumber, totalPages: 1 };
   }
 
-  // Initialize the aggregation pipeline
+  let query = Product.find().populate("category");
   let pipeline = [];
 
-  // Populate the category field with proper ObjectId matching
-  pipeline.push({
-    $lookup: {
-      from: 'categories',
-      localField: 'category',
-      foreignField: '_id',
-      as: 'category',
-    },
-  });
-
-  pipeline.push({ $unwind: { path: '$category', preserveNullAndEmptyArrays: true } });
-
-  // Filter by category
+  // Step 1: Category Filter using Aggregation Pipeline
   if (category) {
     const existCategory = await Category.findOne({ name: category });
+   
     if (existCategory) {
-      pipeline.push({ $match: { 'category._id': ObjectId(existCategory._id) } });
+      pipeline.push({
+        $match: { category: existCategory._id }
+      });
     } else {
-      return { content: [], currentPage: pageNumber, totalPages: 1 };
+      return { content: [], currentPage: pageNumber, totalPages: 0 };
     }
   }
 
-  // Filter by color using regex
+  
   if (color) {
-    const colorSet = color.split(',').map((c) => c.trim().toLowerCase());
-    pipeline.push({
-      $match: {
-        color: { $regex: new RegExp(colorSet.join('|'), 'i') },
-      },
-    });
+    const colorSet = new Set(color.split(",").map(c => c.trim().toLowerCase()));
+    const colorRegex = colorSet.size > 0 ? new RegExp([...colorSet].join("|"), "i") : null;
+    query = query.where("color").regex(colorRegex);
   }
 
-  // Filter by sizes
   if (sizes) {
-    const sizesSet = sizes.split(',').map((s) => s.trim());
-    pipeline.push({
-      $match: { 'sizes.name': { $in: sizesSet } },
-    });
+    const sizesSet = new Set(sizes.split(",").map(s => s.trim()));
+    query = query.where("sizes").in([...sizesSet]);
   }
 
-  console.log("products",products)
-  // Filter by price range
   if (minPrice && maxPrice) {
-    pipeline.push({
-      $match: {
-        discountedPrice: { $gte: parseFloat(minPrice), $lte: parseFloat(maxPrice) },
-      },
-    });
+    query = query.where("discountedPrice").gte(minPrice).lte(maxPrice);
   }
 
-  // Filter by minimum discount
   if (minDiscount) {
-    pipeline.push({
-      $match: {
-        $or: [
-          { discountPercent: { $gt: parseFloat(minDiscount) } },
-          { discountPercent: { $exists: false } },
-        ],
-      },
-    });
+    query = query.where("discountPercent").gte(minDiscount); 
   }
 
-  // Filter by stock status
   if (stock) {
-    if (stock === 'in_stock') {
-      pipeline.push({ $match: { quantity: { $gt: 0 } } });
-    } else if (stock === 'out_of_stock') {
-      pipeline.push({ $match: { quantity: { $lte: 0 } } });
+    if (stock === "in_stock") {
+      query = query.where("quantity").gt(0);
+    } else if (stock === "out_of_stock") {
+      query = query.where("quantity").lte(0);
     }
   }
 
-  // Sorting by price
   if (sort) {
-    const sortDirection = sort === 'price_high' ? -1 : 1;
-    pipeline.push({ $sort: { discountedPrice: sortDirection } });
+    const sortDirection = sort === "price_high" ? -1 : 1;
+    query = query.sort({ discountedPrice: sortDirection });
   }
 
-  // Pagination
+  const totalProducts = await Product.countDocuments(query);
   const skip = (pageNumber - 1) * pageSize;
-  pipeline.push({ $skip: skip });
-  pipeline.push({ $limit: pageSize });
-
-  // Get the total number of products matching the criteria
-  const totalProductsPipeline = [...pipeline];
-  totalProductsPipeline.push({ $count: 'total' });
-
-  const [totalProductsResult] = await Product.aggregate(totalProductsPipeline).exec();
-  const totalProducts = totalProductsResult ? totalProductsResult.total : 0;
+  const products = await query.skip(skip).limit(pageSize).exec();
   const totalPages = Math.ceil(totalProducts / pageSize);
 
-  // Execute the aggregation query
-  const products = await Product.aggregate(pipeline).exec();
-  return { content: products, currentPage: pageNumber, totalPages: totalPages };
+  return { content: products, currentPage: pageNumber, totalPages };
 }
 
-// Create multiple products
 async function createMultipleProduct(products) {
   for (let product of products) {
     await createProduct(product);
   }
 }
-
 
 module.exports = {
   createProduct,

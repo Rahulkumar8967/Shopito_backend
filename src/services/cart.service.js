@@ -18,6 +18,7 @@ async function findUserCart(userId) {
 
   
   // Find all cart items related to the cart
+  console.log(cart)
   let cartItems = await CartItem.find({ cart: cart._id }).populate("product");
 
  
@@ -46,14 +47,19 @@ async function findUserCart(userId) {
 }
 
 
-// Add an item to the user's cart
 async function addCartItem(userId, req) {
-
-  const cart = await Cart.findOne({ user: userId });
+  let cart = await Cart.findOne({ user: userId });
   const product = await Product.findById(req.productId);
 
+  if (!cart) {
+    cart = new Cart({
+      user: userId,
+      cartItems: []
+    });
+    await cart.save();
+  }
+
   const isPresent = await CartItem.findOne({ cart: cart._id, product: product._id, userId });
-  
 
   if (!isPresent) {
     const cartItem = new CartItem({
@@ -63,17 +69,16 @@ async function addCartItem(userId, req) {
       userId,
       price: product.discountedPrice,
       size: req.size,
-      discountedPrice:product.discountedPrice
+      discountedPrice: product.discountedPrice
     });
 
-   
-
     const createdCartItem = await cartItem.save();
+
     cart.cartItems.push(createdCartItem);
+
     await cart.save();
   }
 
-  
   return 'Item added to cart';
 }
 

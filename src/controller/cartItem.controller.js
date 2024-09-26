@@ -1,6 +1,6 @@
 const cartItemService = require("../services/cartItem.service.js");
 
-async function updateCartItem(req, res) {
+async function updateCartItem (req, res) {
   const user = req.user;
   
   try {

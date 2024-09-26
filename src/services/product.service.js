@@ -12,7 +12,6 @@ async function createProduct(reqData) {
       level: 1,
     });
 
-
     topLevel = await topLevelCategory.save();
   }
 
@@ -121,25 +120,27 @@ async function getAllProducts(reqQuery) {
   // Step 1: Category Filter using Aggregation Pipeline
   if (category) {
     const existCategory = await Category.findOne({ name: category });
-   
+
     if (existCategory) {
       pipeline.push({
-        $match: { category: existCategory._id }
+        $match: { category: existCategory._id },
       });
     } else {
       return { content: [], currentPage: pageNumber, totalPages: 0 };
     }
   }
 
-  
   if (color) {
-    const colorSet = new Set(color.split(",").map(c => c.trim().toLowerCase()));
-    const colorRegex = colorSet.size > 0 ? new RegExp([...colorSet].join("|"), "i") : null;
+    const colorSet = new Set(
+      color.split(",").map((c) => c.trim().toLowerCase())
+    );
+    const colorRegex =
+      colorSet.size > 0 ? new RegExp([...colorSet].join("|"), "i") : null;
     query = query.where("color").regex(colorRegex);
   }
 
   if (sizes) {
-    const sizesSet = new Set(sizes.split(",").map(s => s.trim()));
+    const sizesSet = new Set(sizes.split(",").map((s) => s.trim()));
     query = query.where("sizes").in([...sizesSet]);
   }
 
@@ -148,7 +149,7 @@ async function getAllProducts(reqQuery) {
   }
 
   if (minDiscount) {
-    query = query.where("discountPercent").gte(minDiscount); 
+    query = query.where("discountPercent").gte(minDiscount);
   }
 
   if (stock) {

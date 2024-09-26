@@ -37,3 +37,5 @@ const userSchema = new mongoose.Schema({
 const Address = mongoose.model('addresses', userSchema);
 
 module.exports = Address;
+
+

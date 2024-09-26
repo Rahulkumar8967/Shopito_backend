@@ -1,7 +1,7 @@
 const CartItem = require("../models/cartItem.model.js");
 const userService = require("../services/user.service.js");
 
-// Custom Exceptions
+// Custom Exceptions ->> 
 class CartItemException extends Error {
   constructor(message) {
     super(message);
@@ -37,6 +37,7 @@ async function createCartItem(cartItemData) {
   const createdCartItem = await cartItem.save();
   return createdCartItem;
 }
+
 
 // Update an existing cart item
 async function updateCartItem(userId, cartItemId, cartItemData) {

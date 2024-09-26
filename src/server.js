@@ -8,3 +8,4 @@ app.listen(PORT, async () => {
     await connectDb();
     console.log("Ecommerce app listening on PORT", PORT);
 });
+

@@ -31,6 +31,7 @@ const createUser = async (userData) => {
   }
 };
 
+
 const findUserById = async (userId) => {
   try {
     const user = await User.findById(userId); // change maby rahul remove populate

@@ -3,16 +3,28 @@ const orderService = require("../services/order.service.js");
 const createOrder = async (req, res) => {
   const user = req.user; 
 
+  
+  console.log("Request body:", req.body);
+
+ 
+  const { address } = req.body;
+
+  if (!address || !address.firstName || !address.lastName || 
+      !address.streetAddress || !address.city || 
+      !address.state || !address.zipCode) {
+    return res.status(400).send({ error: "All address fields are required." });
+  }
+
   try {
     const createdOrder = await orderService.createOrder(user, req.body);
-
     console.log("Order created: ", createdOrder);
     return res.status(201).send(createdOrder);  
   } catch (error) {
     console.error("Error creating order:", error);
-    return res.status(500).send({ error: error.message });
+    return res.status(500).send({ error: "Failed to create order. Please try again later." });
   }
 };
+
 
 
 
